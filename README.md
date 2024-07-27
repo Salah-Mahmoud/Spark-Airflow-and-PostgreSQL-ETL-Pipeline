@@ -80,7 +80,6 @@ Ensure that the following connections are configured in Airflow:
 
 ### Docker Compose Configuration
 
-The `docker-compose.yml` file sets up the following services:
 - **Spark Master**: For managing Spark jobs.
 - **Spark Worker**: For executing Spark jobs.
 - **PostgreSQL**: For storing the processed data.
