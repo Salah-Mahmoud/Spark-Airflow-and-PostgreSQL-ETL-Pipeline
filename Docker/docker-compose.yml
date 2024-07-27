@@ -1,0 +1,107 @@
+version: '3'
+
+services:
+  spark-master:
+    image: bitnami/spark:latest
+    volumes:
+      - ./jobs:/opt/bitnami/spark/jobs
+      - ./hadoop/conf:/opt/bitnami/spark/conf/hadoop
+    networks:
+      - code-with-salah
+    command: bin/spark-class org.apache.spark.deploy.master.Master
+    ports:
+      - "9090:8080"
+      - "7077:7077"
+    environment:
+      - JAVA_HOME=/opt/bitnami/java
+
+  spark-worker:
+    image: bitnami/spark:latest
+    volumes:
+      - ./jobs:/opt/bitnami/spark/jobs
+      - ./hadoop/conf:/opt/bitnami/spark/conf/hadoop
+    networks:
+      - code-with-salah
+    command: bin/spark-class org.apache.spark.deploy.worker.Worker spark://spark-master:7077
+    depends_on:
+      - spark-master
+    environment:
+      - SPARK_MODE=worker
+      - SPARK_WORKER_CORES=8
+      - SPARK_WORKER_MEMORY=8g
+      - SPARK_MASTER_URL=spark://spark-master:7077
+      - JAVA_HOME=/opt/bitnami/java
+
+  postgres:
+    image: postgres:14.0
+    environment:
+      - POSTGRES_USER=airflow
+      - POSTGRES_PASSWORD=airflow
+      - POSTGRES_DB=airflow
+    networks:
+      - code-with-salah
+    ports:
+      - "5433:5432"
+
+  webserver:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - airflow.env
+    volumes:
+      - ./jobs:/opt/airflow/jobs
+      - ./dags:/opt/airflow/dags
+      - ./logs:/opt/airflow/logs
+      - ./data:/opt/airflow/data
+      - ./scripts:/opt/airflow/scripts  # Mount the scripts directory
+    depends_on:
+      - postgres
+      - scheduler
+    networks:
+      - code-with-salah
+    command: webserver
+    ports:
+      - "8080:8080"
+    environment:
+      - HADOOP_CONF_DIR=/opt/airflow/jobs/hadoop/conf
+      - YARN_CONF_DIR=/opt/airflow/jobs/hadoop/conf
+
+  scheduler:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - airflow.env
+    volumes:
+      - ./jobs:/opt/airflow/jobs
+      - ./dags:/opt/airflow/dags
+      - ./logs:/opt/airflow/logs
+      - ./data:/opt/airflow/data
+      - ./scripts:/opt/airflow/scripts  # Mount the scripts directory
+    depends_on:
+      - postgres
+    networks:
+      - code-with-salah
+    command: >
+      bash -c "airflow db migrate &&
+               airflow users create --username admin --firstname salah --lastname mahmoud --role Admin --email salah.mahmoud8889@gmail.com --password admin &&
+               airflow scheduler"
+    environment:
+      - HADOOP_CONF_DIR=/opt/airflow/jobs/hadoop/conf
+      - YARN_CONF_DIR=/opt/airflow/jobs/hadoop/conf
+
+  pgadmin:
+    image: dpage/pgadmin4
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@example.com
+      - PGADMIN_DEFAULT_PASSWORD=admin
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+    networks:
+      - code-with-salah
+
+networks:
+  code-with-salah:
