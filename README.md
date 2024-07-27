@@ -2,6 +2,9 @@
 
 This project demonstrates an ETL pipeline using Apache Spark for data processing, Apache Airflow for workflow orchestration, and PostgreSQL for data storage. The pipeline processes transaction and behavior data, combines them, and loads the combined data into PostgreSQL.
 
+![Tools](Tools.png)
+
+
 ## Tools and Technologies
 
 - **Apache Spark**: Used for distributed data processing.
