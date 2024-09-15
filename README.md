@@ -29,7 +29,7 @@ This project demonstrates an ETL pipeline using Apache Spark for data processing
 
 1. **Clone the repository**:
     ```sh
-    git clone https://github.com/your-username/spark-airflow-postgres-etl.git
+    git clone https://github.com/Salah-Mahmoud/Spark-Airflow-and-PostgreSQL-ETL-Pipeline
     cd spark-airflow-postgres-etl
     ```
 
